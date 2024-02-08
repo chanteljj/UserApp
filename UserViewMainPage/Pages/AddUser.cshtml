@@ -1,0 +1,45 @@
+﻿@page
+@model AddUserModel
+@{
+    ViewData["Title"] = "Add User";
+}
+<h1>@ViewData["Title"]</h1>
+<form method="post">
+    <div>
+        <label asp-for="User.Username"></label>
+        <input asp-for="User.Username" />
+    </div>
+
+    <div>
+        <label asp-for="User.Surname"></label>
+        <input asp-for="User.Surname" />
+    </div>
+
+    <div>
+        <label asp-for="User.ContactNumber"></label>
+        <input asp-for="User.ContactNumber" />
+    </div>
+
+    <div>
+        <label asp-for="User.Address"></label>
+        <input asp-for="User.Address" />
+    </div>
+
+    <div>    
+        <label asp-for="Group"></label>    
+        <select asp-for="Group.Id" asp-items="Model.UserGroupOptions">
+            <option value="">Select User Group</option>    
+        </select>
+    </div>
+
+
+
+    <div>
+        <label asp-for="Permission"></label>
+        <select asp-for="Permission.Id" asp-items="Model.UserPermissionOptions">
+            <option value="">Select User Permission</option>
+        </select>
+    </div>
+    <button type="submit">Add User</button>
+</form>
+
