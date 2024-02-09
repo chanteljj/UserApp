@@ -33,11 +33,6 @@ namespace UserViewMainPage.Pages
         public async Task<IActionResult> OnPost()
         {
 
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
-
             var client = _clientFactory.CreateClient("API");
             BaseUrl = _configuration.GetValue<string>("APIURL:BaseUrl");
 
@@ -61,7 +56,8 @@ namespace UserViewMainPage.Pages
 
             UserGroup selectedGroup = UserGroupOption.FirstOrDefault(g => g.Id == Group.Id);
             UserPermission selectedPermission = UserPermissionOption.FirstOrDefault(p => p.Id == Permission.Id);
-            UserDetails newUser = new UserDetails {
+            UserDetails newUser = new UserDetails
+            {
                 Username = User.Username,
                 Surname = User.Surname,
                 ContactNumber = User.ContactNumber,
@@ -83,12 +79,11 @@ namespace UserViewMainPage.Pages
             var jsonContent = JsonConvert.SerializeObject(userHome);
             var stringContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            // Send POST request to the API endpoint
             var saveResponse = await client.PostAsync(BaseUrl + "/api/User/createUser", stringContent);
 
             if (saveResponse.IsSuccessStatusCode)
             {
-                return RedirectToPage("/Index"); 
+                return RedirectToPage("/Index");
             }
             else
             {

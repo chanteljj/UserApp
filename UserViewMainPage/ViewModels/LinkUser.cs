@@ -1,4 +1,6 @@
-﻿namespace UserViewMainPage.ViewModels
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace UserViewMainPage.ViewModels
 {
     public class LinkUser
     {

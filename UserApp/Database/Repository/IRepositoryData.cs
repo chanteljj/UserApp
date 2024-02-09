@@ -10,6 +10,7 @@ namespace UserApp.Database.Repository
         List<UserGroup> GetAllGroups();
         List<UserPermission> GetAllUserPermission();
         UserHome GetUserById(Guid id);
+        void DeleteUser(UserDetails userDetails);
         void SaveUser(UserDetails user, LinkUser linkUser);
         void EditUser(UserDetails user, LinkUser linkUser);
     }

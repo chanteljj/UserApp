@@ -35,7 +35,28 @@ namespace UserViewMainPage.Pages
             }
             else
             {
-                // Handle error
+            }
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(Guid id)
+        {
+            try
+            {
+                var client = _clientFactory.CreateClient("API");
+                BaseUrl = _configuration.GetValue<string>("APIURL:BaseUrl");
+                var response = await client.DeleteAsync($"{BaseUrl}/api/User/deleteUser/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToPage("/Index");
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
     }

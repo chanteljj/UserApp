@@ -15,13 +15,13 @@ namespace UserApp.Database.Repository
         {
             try
             {
-                return _context.UserDetails.ToList();
+                return _context.UserDetails.Where(x => x.Active == true).ToList();
             }
             catch (Exception ex)
             {
                 throw ex;
             }
-            
+
         }
 
         public List<UserGroup> GetAllGroups()
@@ -37,7 +37,6 @@ namespace UserApp.Database.Repository
 
         }
 
-        //UserPermissionViewModel
         public List<UserPermission> GetAllUserPermission()
         {
             try
@@ -56,22 +55,18 @@ namespace UserApp.Database.Repository
             try
             {
                 var userId = Guid.NewGuid();
-                //Save 
                 order.Id = userId;
+                order.Active = true;
                 _context.Add<UserDetails>(order);
                 _context.SaveChanges();
 
-                //Guid idUser = order.Id;
-
                 if (userId != null)
                 {
-                    //Save Linked
                     linkUser.Id = Guid.NewGuid();
                     linkUser.UserDetails = _context.UserDetails.Find(userId);
                     linkUser.UserGroup = _context.UserGroup.Find(linkUser.UserGroup.Id);
                     linkUser.UserPermission = _context.UserPermission.Find(linkUser.UserPermission.Id);
 
-                    //if (string.IsNullOrWhiteSpace(linkUser.UserPermission.Id.ToString()))
                     if (linkUser.UserDetails.Id != null)
                     {
                         _context.Add<LinkUser>(linkUser);
@@ -90,11 +85,12 @@ namespace UserApp.Database.Repository
             try
             {
                 _context.Update<UserDetails>(order);
-                _context.SaveChanges();
-                linkUser.UserDetails = _context.UserDetails.Find(order.Id);
-                linkUser.UserGroup = _context.UserGroup.Find(linkUser.UserGroup.Id);
-                linkUser.UserPermission = _context.UserPermission.Find(linkUser.UserPermission.Id);
-                _context.Add<LinkUser>(linkUser);
+                LinkUser updatedLink = _context.LinkUser.Include(x => x.UserDetails)
+                    .Where(x => x.UserDetails.Id == order.Id).FirstOrDefault();
+                updatedLink.UserDetails = _context.UserDetails.Find(order.Id);
+                updatedLink.UserGroup = _context.UserGroup.Find(linkUser.UserGroup.Id);
+                updatedLink.UserPermission = _context.UserPermission.Find(linkUser.UserPermission.Id);
+                _context.Update(updatedLink);
                 _context.SaveChanges();
             }
             catch (Exception ex)
@@ -109,6 +105,8 @@ namespace UserApp.Database.Repository
             {
                 UserDetails user = _context.UserDetails.Find(id);
                 LinkUser linkUser = _context.LinkUser.Include(x => x.UserDetails)
+                    .Include(x => x.UserGroup)
+                    .Include(x => x.UserPermission)
                     .Where(x => x.UserDetails.Id == user.Id).FirstOrDefault();
                 UserHome home = new UserHome
                 {
@@ -124,6 +122,19 @@ namespace UserApp.Database.Repository
 
         }
 
+        public void DeleteUser(UserDetails userDetails)
+        {
+            try
+            {
+                userDetails.Active = false;
+                _context.Update<UserDetails>(userDetails);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
 
     }
 }

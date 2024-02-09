@@ -27,7 +27,6 @@ namespace UserApp.Controllers
                 var userList = _reposityData.GetAllUser();
                 if (userList != null)
                 {
-                    //return View("Index");
                     return Ok(_reposityData.GetAllUser());
                 }
                 return BadRequest();
@@ -45,7 +44,6 @@ namespace UserApp.Controllers
         {
             try
             {
-
                 var userList = _reposityData.GetAllGroups();
                 if (userList != null)
                 {
@@ -66,11 +64,9 @@ namespace UserApp.Controllers
         {
             try
             {
-
                 var userList = _reposityData.GetAllUserPermission();
                 if (userList != null)
                 {
-                    //return View("Index");
                     return Ok(_reposityData.GetAllUserPermission());
                 }
                 return BadRequest();
@@ -140,6 +136,29 @@ namespace UserApp.Controllers
                 throw ex;
             }
 
+        }
+
+        [HttpDelete]
+        [Route("deleteUser/{id}")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            try
+            {
+                var user = _reposityData.GetUserById(id);
+                if (user != null)
+                {
+                    _reposityData.DeleteUser(user.UserDetails);
+                    return Ok("User deleted successfully");
+                }
+                else
+                {
+                    return NotFound("User not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
     }

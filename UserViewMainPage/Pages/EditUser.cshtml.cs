@@ -101,7 +101,8 @@ namespace UserViewMainPage.Pages
 
             UserGroup selectedGroup = UserGroupOption.FirstOrDefault(g => g.Id == Group.Id);
             UserPermission selectedPermission = UserPermissionOption.FirstOrDefault(p => p.Id == Permission.Id);
-            
+
+            User.Active = true;
             LinkUser.UserPermission = selectedPermission;
             LinkUser.UserGroup = selectedGroup;
             LinkUser.UserDetails = User;
@@ -114,7 +115,6 @@ namespace UserViewMainPage.Pages
             var jsonContent = JsonConvert.SerializeObject(userHome);
             var stringContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            // Send PUT request to update user details
             var updateResponse = await client.PutAsync($"{baseUrl}/api/User/editUser", stringContent);
 
             if (updateResponse.IsSuccessStatusCode)
