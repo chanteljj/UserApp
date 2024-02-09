@@ -18,7 +18,7 @@ namespace UserViewMainPage.Pages
             _configuration = configuration;
         }
 
-        public IList<UserDetailViewModel> Users { get; set; }
+        public IList<UserDetails> Users { get; set; }
 
         public string BaseUrl { get; private set; }
 
@@ -31,7 +31,7 @@ namespace UserViewMainPage.Pages
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                Users = JsonConvert.DeserializeObject<IList<UserDetailViewModel>>(content);
+                Users = JsonConvert.DeserializeObject<IList<UserDetails>>(content);
             }
             else
             {

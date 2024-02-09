@@ -23,7 +23,7 @@ namespace UserApp.Controllers
         {
             try
             {
-                var userList = _reposityData.GetAllUser();
+                var userList = _reposityData.GetAllUser().Select(x => x.Active == true);
                 if (userList != null)
                 {
                     //return View("Index");

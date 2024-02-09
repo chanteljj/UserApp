@@ -1,6 +1,6 @@
 ﻿namespace UserViewMainPage.ViewModels
 {
-    public class UserGroupViewModel
+    public class UserGroup
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

@@ -4,14 +4,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using System.Text;
 using UserViewMainPage.ViewModels;
-
 namespace UserViewMainPage.Pages
 {
     public class AddUserModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
-
 
         public AddUserModel(IHttpClientFactory clientFactory, IConfiguration configuration)
         {
@@ -20,70 +18,82 @@ namespace UserViewMainPage.Pages
         }
 
         [BindProperty]
-        public UserDetailViewModel User { get; set; } 
-        public UserGroupViewModel Group { get; set; }
-        public UserPermissionViewModel Permission { get; set; }
+        public UserDetails User { get; set; } // BindProperty for the form data
+        [BindProperty]
+        public UserGroup Group { get; set; }
+        [BindProperty]
+        public UserPermission Permission { get; set; }
 
         public IEnumerable<SelectListItem> UserGroupOptions { get; set; }
         public IEnumerable<SelectListItem> UserPermissionOptions { get; set; }
 
-
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPost()
         {
-            try
+            var client = _clientFactory.CreateClient("API");
+            BaseUrl = _configuration.GetValue<string>("APIURL:BaseUrl");
+
+            var response = await client.GetAsync(BaseUrl + "/api/User/getGroup");
+            if (response.IsSuccessStatusCode)
             {
-                var client = _clientFactory.CreateClient("API");
-                string url = _configuration.GetValue<string>("APIURL:BaseUrl") + "/api/User/createUser";
-
-                if (!ModelState.IsValid)
-                {
-                    return Page();
-                }
-
-                UserDetailViewModel user = new()
-                {
-                    Id = User.Id,
-                    Username = User.Username,
-                    Surname = User.Surname,
-                    ContactNumber = User.ContactNumber,
-                    Address = User.Address,
-                    Active = true
-                };
-
-                Guid test = Group.Id;
-
-                UserHomeViewModel homeViewModel = new()
-                {
-                    UserDetails = user,
-                    LinkUser = new()
-                    {
-                        UserGroup = Group,
-                        UserPermission = Permission,
-                    }
-                };
-
-                var json = JsonConvert.SerializeObject(homeViewModel);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = client.PostAsync(url, content);
-
-                if (response.IsCompleted)
-                {
-                    return RedirectToPage("/Index"); // Redirect to the users index page after adding the user
-                }
-                return RedirectToPage("/Index"); // Redirect to the users index page after adding the user
+                var content = await response.Content.ReadAsStringAsync();
+                UserGroupOption = JsonConvert.DeserializeObject<IList<UserGroup>>(content);
+                UserGroupOptions = UserGroupOption
+            .Select(g => new SelectListItem { Value = g.Id.ToString(), Text = g.Name });
             }
-            catch (Exception ex)
-            {
 
-                throw ex;
+            var responses = await client.GetAsync(BaseUrl + "/api/User/getPermission");
+            if (responses.IsSuccessStatusCode)
+            {
+                var content = await responses.Content.ReadAsStringAsync();
+                UserPermissionOption = JsonConvert.DeserializeObject<IList<UserPermission>>(content);
+                UserPermissionOptions = UserPermissionOption
+            .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name });
+            }
+
+            ViewModels.UserGroup selectedGroup = UserGroupOption.FirstOrDefault(g => g.Id == Group.Id);
+            UserPermission selectedPermission = UserPermissionOption.FirstOrDefault(p => p.Id == Permission.Id);
+            UserDetails newUser = new UserDetails
+            {
+                Username = User.Username,
+                Surname = User.Surname,
+                ContactNumber = User.ContactNumber,
+                Address = User.Address,
+                Active = User.Active
+            };
+
+            UserHome userHome = new UserHome
+            {
+                UserDetails = newUser,
+                LinkUser = new LinkUser
+                {
+                    UserGroup = selectedGroup,
+                    UserPermission = selectedPermission,
+                    UserDetails = newUser
+                }
+            };
+
+            var jsonContent = JsonConvert.SerializeObject(userHome);
+            var stringContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            // Send POST request to the API endpoint
+            var saveResponse = await client.PostAsync(BaseUrl + "/api/User/createUser", stringContent);
+
+            if (saveResponse.IsSuccessStatusCode)
+            {
+                return RedirectToPage("/Index");
+            }
+            else
+            {
+                return BadRequest();
             }
         }
+
 
         public string BaseUrl { get; private set; }
 
 
-        public IList<UserGroupViewModel> UserGroupOption { get; set; }
-        public IList<UserPermissionViewModel> UserPermissionOption { get; set; }
+        public IList<UserGroup> UserGroupOption { get; set; }
+        public IList<UserPermission> UserPermissionOption { get; set; }
 
 
 
@@ -96,7 +106,7 @@ namespace UserViewMainPage.Pages
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                UserGroupOption = JsonConvert.DeserializeObject<IList<UserGroupViewModel>>(content);
+                UserGroupOption = JsonConvert.DeserializeObject<IList<UserGroup>>(content);
                 UserGroupOptions = UserGroupOption
             .Select(g => new SelectListItem { Value = g.Id.ToString(), Text = g.Name });
             }
@@ -105,7 +115,7 @@ namespace UserViewMainPage.Pages
             if (responses.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                UserPermissionOption = JsonConvert.DeserializeObject<IList<UserPermissionViewModel>>(content);
+                UserPermissionOption = JsonConvert.DeserializeObject<IList<UserPermission>>(content);
                 UserPermissionOptions = UserPermissionOption
             .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name });
             }
