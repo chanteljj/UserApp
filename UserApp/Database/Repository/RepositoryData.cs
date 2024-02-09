@@ -1,4 +1,6 @@
-﻿using UserApp.Database.Model;
+﻿using Microsoft.EntityFrameworkCore;
+using UserApp.Controllers.Class;
+using UserApp.Database.Model;
 
 namespace UserApp.Database.Repository
 {
@@ -83,6 +85,45 @@ namespace UserApp.Database.Repository
             }
         }
 
-  
+        public void EditUser(UserDetails order, LinkUser linkUser)
+        {
+            try
+            {
+                _context.Update<UserDetails>(order);
+                _context.SaveChanges();
+                linkUser.UserDetails = _context.UserDetails.Find(order.Id);
+                linkUser.UserGroup = _context.UserGroup.Find(linkUser.UserGroup.Id);
+                linkUser.UserPermission = _context.UserPermission.Find(linkUser.UserPermission.Id);
+                _context.Add<LinkUser>(linkUser);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public UserHome GetUserById(Guid id)
+        {
+            try
+            {
+                UserDetails user = _context.UserDetails.Find(id);
+                LinkUser linkUser = _context.LinkUser.Include(x => x.UserDetails)
+                    .Where(x => x.UserDetails.Id == user.Id).FirstOrDefault();
+                UserHome home = new UserHome
+                {
+                    UserDetails = user,
+                    LinkUser = linkUser
+                };
+                return home;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+
+
     }
 }

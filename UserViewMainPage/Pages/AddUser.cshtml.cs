@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using System.Text;
 using UserViewMainPage.ViewModels;
+
 namespace UserViewMainPage.Pages
 {
     public class AddUserModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
+
 
         public AddUserModel(IHttpClientFactory clientFactory, IConfiguration configuration)
         {
@@ -19,16 +21,23 @@ namespace UserViewMainPage.Pages
 
         [BindProperty]
         public UserDetails User { get; set; } // BindProperty for the form data
+
+        public IEnumerable<SelectListItem> UserGroupOptions { get; set; }
+        public IEnumerable<SelectListItem> UserPermissionOptions { get; set; }
+
         [BindProperty]
         public UserGroup Group { get; set; }
         [BindProperty]
         public UserPermission Permission { get; set; }
 
-        public IEnumerable<SelectListItem> UserGroupOptions { get; set; }
-        public IEnumerable<SelectListItem> UserPermissionOptions { get; set; }
-
         public async Task<IActionResult> OnPost()
         {
+
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
+
             var client = _clientFactory.CreateClient("API");
             BaseUrl = _configuration.GetValue<string>("APIURL:BaseUrl");
 
@@ -50,10 +59,9 @@ namespace UserViewMainPage.Pages
             .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name });
             }
 
-            ViewModels.UserGroup selectedGroup = UserGroupOption.FirstOrDefault(g => g.Id == Group.Id);
+            UserGroup selectedGroup = UserGroupOption.FirstOrDefault(g => g.Id == Group.Id);
             UserPermission selectedPermission = UserPermissionOption.FirstOrDefault(p => p.Id == Permission.Id);
-            UserDetails newUser = new UserDetails
-            {
+            UserDetails newUser = new UserDetails {
                 Username = User.Username,
                 Surname = User.Surname,
                 ContactNumber = User.ContactNumber,
@@ -80,14 +88,13 @@ namespace UserViewMainPage.Pages
 
             if (saveResponse.IsSuccessStatusCode)
             {
-                return RedirectToPage("/Index");
+                return RedirectToPage("/Index"); 
             }
             else
             {
                 return BadRequest();
             }
         }
-
 
         public string BaseUrl { get; private set; }
 
@@ -114,7 +121,7 @@ namespace UserViewMainPage.Pages
             var responses = await client.GetAsync(BaseUrl + "/api/User/getPermission");
             if (responses.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
+                var content = await responses.Content.ReadAsStringAsync();
                 UserPermissionOption = JsonConvert.DeserializeObject<IList<UserPermission>>(content);
                 UserPermissionOptions = UserPermissionOption
             .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name });

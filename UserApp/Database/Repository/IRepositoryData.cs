@@ -1,4 +1,6 @@
-﻿using UserApp.Database.Model;
+﻿using System;
+using UserApp.Controllers.Class;
+using UserApp.Database.Model;
 
 namespace UserApp.Database.Repository
 {
@@ -7,6 +9,8 @@ namespace UserApp.Database.Repository
         List<UserDetails> GetAllUser();
         List<UserGroup> GetAllGroups();
         List<UserPermission> GetAllUserPermission();
+        UserHome GetUserById(Guid id);
         void SaveUser(UserDetails user, LinkUser linkUser);
+        void EditUser(UserDetails user, LinkUser linkUser);
     }
 }

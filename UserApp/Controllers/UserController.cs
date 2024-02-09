@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using UserApp.Controllers.Class;
 using UserApp.Database.Model;
 using UserApp.Database.Repository;
@@ -23,14 +24,14 @@ namespace UserApp.Controllers
         {
             try
             {
-                var userList = _reposityData.GetAllUser().Select(x => x.Active == true);
+                var userList = _reposityData.GetAllUser();
                 if (userList != null)
                 {
                     //return View("Index");
                     return Ok(_reposityData.GetAllUser());
                 }
                 return BadRequest();
-               
+
             }
             catch (Exception ex)
             {
@@ -44,6 +45,7 @@ namespace UserApp.Controllers
         {
             try
             {
+
                 var userList = _reposityData.GetAllGroups();
                 if (userList != null)
                 {
@@ -64,6 +66,7 @@ namespace UserApp.Controllers
         {
             try
             {
+
                 var userList = _reposityData.GetAllUserPermission();
                 if (userList != null)
                 {
@@ -79,13 +82,30 @@ namespace UserApp.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(Guid id)
+        {
+            try
+            {
+                var user = _reposityData.GetUserById(id);
+                if (user != null)
+                {
+                    return Ok(user);
+                }
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpPost]
         [Route("createUser")]
         public async Task<IActionResult> CreateUser([FromBody] UserHome userHome)
         {
             try
             {
-                //UserHome
                 if (userHome != null)
                 {
                     _reposityData.SaveUser(userHome.UserDetails, userHome.LinkUser);
@@ -98,7 +118,28 @@ namespace UserApp.Controllers
             {
                 throw ex;
             }
-  
+
+        }
+
+        [HttpPut]
+        [Route("editUser")]
+        public async Task<IActionResult> EditUser([FromBody] UserHome userHome)
+        {
+            try
+            {
+                if (userHome != null)
+                {
+                    _reposityData.EditUser(userHome.UserDetails, userHome.LinkUser);
+                    return Ok("Success");
+                }
+                return BadRequest();
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
         }
 
     }
